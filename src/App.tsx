@@ -1,25 +1,67 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from 'react';
+import * as C from './App.styles';
+import { Item } from './types/Item';
+import { items } from './data/items';
+import { categories } from './data/categories';
+import { getCurrentMonth, filterListByMonth } from './helpers/dateHelper';
+import { TableArea } from './components/TableArea';
+import { InfoArea } from './components/InfoArea';
+import { InputArea } from './components/InputArea';
 
-function App() {
+const App = () => {
+
+  const [list, setList] = useState(items);
+  const [filteredList, setFilteredList] = useState<Item[]>([]);
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
+  const [income, setIncome] = useState(0);
+  const [expanse, setExpanse] = useState(0);
+
+  useEffect(() => {
+    setFilteredList(filterListByMonth(list, currentMonth));
+  }, [list, currentMonth])
+
+  useEffect(() => {
+
+    let newIncome = 0;
+    let newExpanse = 0;
+
+    filteredList.forEach(item => categories[item.category].expanse ? newExpanse += item.value : newIncome += item.value);
+
+    setIncome(newIncome);
+    setExpanse(newExpanse);
+
+  }, [filteredList])
+
+  const handleMonthChange = (date: Date): void => {
+    setCurrentMonth(getCurrentMonth(date));
+  }
+
+  const handleAddItem = ( item: Item ): void  => {
+    const newList = [...list];
+    newList.push(item);
+    setList(newList);
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <C.Container>
+      <C.Header>
+        <C.HeaderTitle>Sistema Financeiro</C.HeaderTitle>
+      </C.Header>
+      <C.Body>
+
+        <InfoArea
+          currentMonth={currentMonth}
+          onMonthChange={handleMonthChange}
+          income={income}
+          expanse={expanse}
+        />
+
+        <InputArea onAddItem={handleAddItem} />
+
+        <TableArea list={filteredList} />
+
+      </C.Body>
+    </C.Container>
   );
 }
 
